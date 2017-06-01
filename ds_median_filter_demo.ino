@@ -8,6 +8,7 @@
 
   2014-03-25: started by David Cary
   2016-11-07: more typical data stream and two sizes for median calculation: David Smith
+  2017-05-31: add two add'l "prev" values to operate the median5(), used sprintf() to streamline printing
 
   14.85  15.84 11.88 14.85 --------------*
   15.84  11.88 16.83 15.84 ---------------*
@@ -20,7 +21,6 @@
 #include <TextGraph.h>  // to provide an output graph  http://engineeringnotes.blogspot.com/2013/09/graphing-in-arduino-serial-monitor.html
 
 // use globals
-//int x; int y;
 
 // instances
 TextGraph TG(1);  // create an instance of TextGraph named "TG"
@@ -28,35 +28,36 @@ TextGraph TG(1);  // create an instance of TextGraph named "TG"
 double fval_new = 0;
 double fval_prev1 = 0;
 double fval_prev2 = 0;
+double fval_prev3 = 0;
+double fval_prev4 = 0;
+char str_buf[99];
 
+// ------------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
   while (!Serial && (millis() < 8000)) { } // continues if the monitor window is never opened
-  // read first value, initialize with it.
-  fval_prev2 = 0;
-  fval_prev1 = fval_prev2;
-  fval_new = fval_prev1;
-  Serial.println("val_new val_prev val_prev2   median:");
+
+
+  //Serial.println("prev2 \tprev1 \tnew \t\tmedian:");     // print output header line  med3
+  Serial.println("prev4 \t prev3 \tprev2 \tprev1 \tnew \t\tmedian:");     // print output header line  med5
 }
 
+// ------------------------------------------------------------------------------
 void loop() {
   // generate random data with outliers to observe median filtering
-  // drop val_prev2 value and shift in latest value
+  // drop val_prevN value and shift in latest value
+  double fmedian = 0;
+  fval_prev4 = fval_prev3;
+  fval_prev3 = fval_prev2;
   fval_prev2 = fval_prev1;
   fval_prev1 = fval_new;
-  fval_new = 0.99 * (10 + random(-2, 8) + (random(0, 4) == 0) * 4 * (random(0, 5))); // small variation plus occasional spikes
+  fval_new = 1.9 * (10 + random(-2, 8) + (random(0, 7) == 0) * (random(0, 28))); // small variation plus occasional spikes
 
-  double fmedian = median3(fval_prev2, fval_prev1, fval_new);
- // Serial.print(fval_prev2); Serial.print("\t");
-//  Serial.print(fval_prev1); Serial.print("\t");
-  // align small integers
-  // if (fval_new >= 0) Serial.print(" ");
-  // if (abs(fval_new) < 10) Serial.print(" ");
-  Serial.print(fval_new); Serial.print("\t");
-  Serial.print(fmedian); Serial.print("\t");
-  //Serial.print("\n");
-  TG.barGraph(fmedian);       // dotGraph function, simplest form
-  // Serial.println();
+  // fmedian = fval_new;// no median filter
+  fmedian = median5(fval_prev4, fval_prev3, fval_prev2, fval_prev1, fval_new);
+  sprintf(str_buf, "%5.1f  %5.1f  %5.1f  %5.1f  %5.1f    %5.1f", fval_prev4, fval_prev3, fval_prev2, fval_prev1, fval_new, fmedian);
+  Serial.print(str_buf);
+  TG.barGraph(fmedian);       // dotGraph function, simplest form with line only
 
   delay(200);
 }
@@ -81,7 +82,7 @@ double median5( double a0, double a1, double a2, double a3, double a4 ) {
 
   return a2; // median value
 }
-double median5( int a0, int a1, int a2, int a3, int a4 ) {
+int median5( int a0, int a1, int a2, int a3, int a4 ) {
   /* Network for N=5, using Bose-Nelson Algorithm.
     SWAP(0, 1); SWAP(3, 4); SWAP(2, 4);
     SWAP(2, 3); SWAP(0, 3); SWAP(0, 2);
