@@ -4,8 +4,8 @@
   finds the median of 3 or 5 integers or floats
   Uses explicit steps for sorting for simplicity and speed
   
-  references
-  http://pages.ripco.net/~jgamble/nw.html for sorting algorithm
+  references:
+  sorting algorithm http://pages.ripco.net/~jgamble/nw.html  
   function pointers http://www.dummies.com/programming/cpp/how-to-pass-pointers-to-functions-in-c/
   earlier implementation started by David Cary
    
@@ -15,7 +15,7 @@
               For other arduinos, convert to a string first per below. 
 
               from: https://stackoverflow.com/questions/27651012/arduino-sprintf-float-not-formatting#27652012
-              // convert it to a C-Style string and then use sprintf, eg:
+              // convert it to a C-Style string and then use sprintf:
               char str_temp[6];
               dtostrf(temp, 4, 2, str_temp);
               sprintf(temperature,"%s F", str_temp);
